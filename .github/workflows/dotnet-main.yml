@@ -1,0 +1,62 @@
+﻿name: build and publish CollectionRecord (.NET) [main breanch]
+
+on:
+  push:
+    branches: 
+        - main
+        - test
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch: 
+
+env:
+  DOTNET_VERSION: 5.0.*
+  BUILD_PREFIX: "1.1"
+
+jobs:
+  build-doc-and-deploy:
+    name: "Build doc and deploy to github pages"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2       
+      
+      - name: Setup .NET Core 5.0
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 5.0.x
+      
+      - uses: nuget/setup-nuget@v1
+        with:
+          nuget-version: '5.x'
+      
+      - name: Create Output dir
+        run: mkdir ./out
+        
+      - name: Install dependencies
+        run: dotnet restore
+        
+      - name: Create a tool manifest
+        run: dotnet new tool-manifest
+        
+      - name: Install the Swashbuckle CLI tool 
+        run: dotnet tool install --global Swashbuckle.AspNetCore.Cli --version 6.2.2
+        
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+        
+      - name: Release Publish API 
+        run: dotnet publish --configuration Release
+      
+      - name: Install Redoc Cli
+        run: npm i -g redoc-cli
+      
+      - name: Generate documentation
+        run: redoc-cli bundle ./bin/Release/net5.0/swagger.json -o ./documentation/index.html
+      
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@4.1.5
+        with:
+          branch: gh-pages # The branch the action should deploy to.
+          folder: documentation # The folder the action should deploy.
