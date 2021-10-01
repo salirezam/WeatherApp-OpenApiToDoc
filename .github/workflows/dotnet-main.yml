@@ -1,4 +1,4 @@
-﻿name: build and publish CollectionRecord (.NET) [main breanch]
+﻿name: build and publish (.NET) [main breanch]
 
 on:
   push:
